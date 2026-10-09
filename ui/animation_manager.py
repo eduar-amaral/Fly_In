@@ -1,0 +1,88 @@
+from __future__ import annotations
+
+import time
+
+
+class AnimationManager:
+    """Control the time progress of a visual animation.
+
+    This class keeps the animation state, supports pause/resume, and exposes
+    the current progress value to the renderer.
+
+    Args:
+        duration: Total time of the animation in seconds.
+    """
+
+    def __init__(self, duration: float = 0.5) -> None:
+        """Initialize the animation state.
+
+        Args:
+            duration: Total time of the animation in seconds.
+        """
+        self._duration = duration
+
+        self._active = False
+        self._paused = False
+
+        self._start_time = 0.0
+        self._paused_time = 0.0
+        self._progress = 0.0
+
+    def start(self) -> None:
+        """Start or restart the animation from the beginning."""
+        self._start_time = time.perf_counter()
+        self._paused_time = 0.0
+        self._progress = 0.0
+
+        self._active = True
+        self._paused = False
+
+    def update(self) -> None:
+        """Refresh the animation progress using the current time."""
+        if not self._active or self._paused:
+            return
+
+        elapsed = time.perf_counter() - self._start_time
+
+        self._progress = min(
+            elapsed / self._duration,
+            1.0,
+        )
+
+        if self._progress >= 1.0 - 1e-9:
+            self._progress = 1.0
+            self._active = False
+
+    def toggle_pause(self) -> None:
+        """Pause the animation if it is running, or resume it if paused."""
+        if not self._active:
+            return
+
+        if self._paused:
+            self._resume()
+        else:
+            self._pause()
+
+    def _pause(self) -> None:
+        self._paused_time = time.perf_counter()
+        self._paused = True
+
+    def _resume(self) -> None:
+        paused_duration = (
+            time.perf_counter() - self._paused_time
+        )
+
+        self._start_time += paused_duration
+        self._paused = False
+
+    @property
+    def progress(self) -> float:
+        return self._progress
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @property
+    def paused(self) -> bool:
+        return self._paused
