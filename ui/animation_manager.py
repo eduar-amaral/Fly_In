@@ -75,9 +75,22 @@ class AnimationManager:
         self._start_time += paused_duration
         self._paused = False
 
+    @staticmethod
+    def ease_in_out_cubic(value: float) -> float:
+        value = max(0.0, min(1.0, value))
+
+        if value < 0.5:
+            return 4.0 * value * value * value
+
+        return 1.0 - ((-2.0 * value + 2.0) ** 3) / 2.0
+
     @property
     def progress(self) -> float:
         return self._progress
+
+    @property
+    def eased_progress(self) -> float:
+        return self.ease_in_out_cubic(self._progress)
 
     @property
     def active(self) -> bool:

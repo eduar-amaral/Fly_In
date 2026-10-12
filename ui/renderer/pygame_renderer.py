@@ -18,7 +18,7 @@ from .components.zone_renderer import ZoneRenderer
 
 if TYPE_CHECKING:
     from simulation.simulation_state import SimulationState
-    from simulation.step_result import StepResult
+    from simulation.step_result import Movement, StepResult
 
 
 class PygameRenderer(Renderer):
@@ -156,11 +156,26 @@ class PygameRenderer(Renderer):
 
         self._drone_renderer.render(self._screen, stationary_drones)
 
+        moving_groups: dict[tuple[str, str], list[Movement]] = {}
         for movement in result.movements:
+            key = (movement.from_zone, movement.to_zone)
+            moving_groups.setdefault(key, []).append(movement)
+
+        eased_progress = self._animation_manager.eased_progress
+
+        for movement in result.movements:
+            key = (movement.from_zone, movement.to_zone)
+            group = moving_groups[key]
+            index = group.index(movement)
+            offset = self._drone_renderer.offset_for_group(
+                len(group),
+                index,
+            )
             self._drone_renderer.render_movement(
                 self._screen,
                 movement,
-                progress,
+                eased_progress,
+                offset,
             )
 
     def _clear_screen(self) -> None:

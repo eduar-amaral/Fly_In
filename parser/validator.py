@@ -6,11 +6,13 @@ from .errors import ParseError
 
 
 class MapValidator:
+    """Validate the input format and metadata used by map files."""
 
     def validate_nb_drones(
         self,
         first: tuple[int, str],
     ) -> int:
+        """Validate the number of drones declared on the first line."""
         lineno, content = first
 
         prefix = "nb_drones:"
@@ -19,7 +21,7 @@ class MapValidator:
             raise ParseError(
                 "First line must be 'nb_drones: <positive integer>'.",
                 lineno,
-                content
+                content,
             )
 
         raw_value = content[len(prefix):].strip()
@@ -28,24 +30,23 @@ class MapValidator:
             raise ParseError(
                 "nb_drones value is missing.",
                 lineno,
-                content
+                content,
             )
 
         try:
             value = int(raw_value)
-
         except ValueError:
             raise ParseError(
                 f"nb_drones must be a positive integer, got: {raw_value!r}",
                 lineno,
-                content
-            )
+                content,
+            ) from None
 
         if value <= 0:
             raise ParseError(
                 f"nb_drones must be greater than 0, got: {value}",
                 lineno,
-                content
+                content,
             )
 
         return value
@@ -54,23 +55,20 @@ class MapValidator:
         self,
         metadata: dict[str, str],
         lineno: int,
-        content: str
+        content: str,
     ) -> ZoneType:
-        raw_value = metadata.get(
-            "zone",
-            ZoneType.NORMAL.value
-        )
+        """Validate the zone type declared in the metadata."""
+        raw_value = metadata.get("zone", ZoneType.NORMAL.value)
 
         try:
             return ZoneType(raw_value)
-
         except ValueError:
             raise ParseError(
                 f"Invalid zone type: {raw_value!r}. must be one of: "
                 f"{ZoneType.valid_values()}",
                 lineno,
-                content
-            )
+                content,
+            ) from None
 
     def validate_positive_int(
         self,
@@ -78,8 +76,9 @@ class MapValidator:
         key: str,
         default: int,
         lineno: int,
-        content: str
+        content: str,
     ) -> int:
+        """Validate metadata values that must be strictly positive."""
         if key not in metadata:
             return default
 
@@ -87,10 +86,12 @@ class MapValidator:
 
         if not raw_value.isdigit():
             raise ParseError(
-                f"Metadata '{key}' must be a positive integer, "
-                f"got: {raw_value!r}",
+                (
+                    f"Metadata '{key}' must be a positive integer, "
+                    f"got: {raw_value!r}"
+                ),
                 lineno,
-                content
+                content,
             )
 
         value = int(raw_value)
@@ -100,7 +101,7 @@ class MapValidator:
                 f"Metadata '{key}' must be a positive integer, "
                 f"got: {raw_value!r}",
                 lineno,
-                content
+                content,
             )
 
         return value
@@ -110,15 +111,15 @@ class MapValidator:
         field: str,
         raw_value: str,
         lineno: int,
-        content: str
+        content: str,
     ) -> int:
+        """Validate the integer coordinate of a zone."""
         try:
             return int(raw_value)
-
         except ValueError:
             raise ParseError(
                 f"Zone coordinate '{field}' must be an integer, "
                 f"got: {raw_value!r}",
                 lineno,
-                content
-            )
+                content,
+            ) from None

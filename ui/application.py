@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum
+
 import pygame
 
 from graph import Graph
@@ -8,6 +10,14 @@ from simulation import Simulation
 from ui.renderer.pygame_renderer import PygameRenderer
 
 from .menu.menu_manager import MenuManager
+
+
+class ScreenState(str, Enum):
+    """Possible states of the main application screen."""
+
+    MENU = "menu"
+    SIMULATION = "simulation"
+    RESULT = "result"
 
 
 class Application:
@@ -31,16 +41,18 @@ class Application:
         )
 
         pygame.display.set_caption("Fly_In")
+        pygame.key.set_repeat(30, 30)
 
         self._clock = pygame.time.Clock()
         self._running = True
+        self._result_font = pygame.font.SysFont("consolas", 28)
 
         self._menu_manager = MenuManager(self._screen)
 
         self._simulation: Simulation | None = None
         self._renderer: PygameRenderer | None = None
 
-        self._current_screen = "menu"
+        self._current_screen = ScreenState.MENU
 
     def run(self) -> None:
         """Run the main app loop until the user exits the program."""
@@ -59,26 +71,35 @@ class Application:
                 self._running = False
                 continue
 
-            if self._current_screen == "result":
+            if self._current_screen == ScreenState.RESULT:
                 if (
                     event.type == pygame.KEYDOWN
+                    and not getattr(event, "repeat", False)
                     and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER)
                 ):
-                    self._current_screen = "menu"
+                    self._current_screen = ScreenState.MENU
                     self._simulation = None
                     self._renderer = None
                     continue
 
-                if self._renderer is not None:
-                    self._renderer.handle_event(event)
+                if (
+                    event.type == pygame.KEYDOWN
+                    and not getattr(event, "repeat", False)
+                    and event.key == pygame.K_ESCAPE
+                ):
+                    self._current_screen = ScreenState.MENU
+                    self._simulation = None
+                    self._renderer = None
+                    continue
+
                 continue
 
-            if self._current_screen == "simulation":
+            if self._current_screen == ScreenState.SIMULATION:
                 if (
                     event.type == pygame.KEYDOWN
                     and event.key == pygame.K_ESCAPE
                 ):
-                    self._current_screen = "menu"
+                    self._current_screen = ScreenState.MENU
                     self._simulation = None
                     self._renderer = None
                     continue
@@ -102,7 +123,7 @@ class Application:
                 self._running = False
                 continue
 
-            if self._current_screen != "menu":
+            if self._current_screen != ScreenState.MENU:
                 continue
 
             action = self._menu_manager.handle_event(event)
@@ -131,10 +152,10 @@ class Application:
         )
 
         self._renderer = PygameRenderer(graph, logger=self._simulation.logger)
-        self._current_screen = "simulation"
+        self._current_screen = ScreenState.SIMULATION
 
     def _update(self) -> None:
-        if self._current_screen != "simulation":
+        if self._current_screen != ScreenState.SIMULATION:
             return
 
         if self._simulation is None:
@@ -152,7 +173,7 @@ class Application:
             drone.finished
             for drone in self._simulation.state.drones
         ):
-            self._current_screen = "result"
+            self._current_screen = ScreenState.RESULT
             return
 
         result = self._simulation.step()
@@ -163,15 +184,14 @@ class Application:
         )
 
     def _render(self) -> None:
-        if self._current_screen == "menu":
+        if self._current_screen == ScreenState.MENU:
             self._menu_manager.render()
 
-        elif self._current_screen == "result":
+        elif self._current_screen == ScreenState.RESULT:
             if self._renderer is not None:
                 self._renderer.render()
 
-            font = pygame.font.SysFont("consolas", 28)
-            text = font.render(
+            text = self._result_font.render(
                 "Press Enter to continue",
                 True,
                 (255, 255, 255),
@@ -185,6 +205,6 @@ class Application:
             )
             pygame.display.flip()
 
-        elif self._current_screen == "simulation":
+        elif self._current_screen == ScreenState.SIMULATION:
             if self._renderer is not None:
                 self._renderer.render()

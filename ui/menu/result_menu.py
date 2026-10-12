@@ -10,6 +10,8 @@ class ResultMenu:
         self._font = pygame.font.Font(None, 48)
         self._title_font = pygame.font.Font(None, 72)
 
+    MENU = "MENU"
+
     def handle_event(
         self,
         event: pygame.event.Event,
@@ -17,8 +19,11 @@ class ResultMenu:
         if event.type != pygame.KEYDOWN:
             return None
 
-        if event.key == pygame.K_RETURN:
-            return "MENU"
+        if (
+            event.key in (pygame.K_RETURN, pygame.K_KP_ENTER)
+            and not getattr(event, "repeat", False)
+        ):
+            return self.MENU
 
         return None
 
@@ -38,7 +43,7 @@ class ResultMenu:
         )
 
         title_rect = title.get_rect(
-            center=(640, 220)
+            center=(640, 220),
         )
 
         self._screen.blit(title, title_rect)
@@ -51,7 +56,7 @@ class ResultMenu:
         )
 
         message_rect = message.get_rect(
-            center=(640, 350)
+            center=(640, 350),
         )
 
         self._screen.blit(message, message_rect)

@@ -18,16 +18,31 @@ class Scheduler:
             if not drone.finished
         ]
 
-        candidates = self._build_candidates(active_drones)
+        result = StepResult()
+
+        ready_drones = []
+        for drone in active_drones:
+            if drone.wait_turns > 0:
+                if drone.consume_wait():
+                    result.waits.append(
+                        Wait(
+                            drone_id=drone.drone_id,
+                            zone=drone.current_zone,
+                            reason="restricted zone",
+                        )
+                    )
+                continue
+
+            ready_drones.append(drone)
+
+        candidates = self._build_candidates(ready_drones)
 
         accepted, rejected = self._resolve_moves(
-            active_drones,
+            ready_drones,
             candidates,
         )
 
-        result = StepResult()
-
-        for drone in active_drones:
+        for drone in ready_drones:
             decision = candidates.get(drone.drone_id)
 
             if decision is None:
@@ -55,9 +70,12 @@ class Scheduler:
                     )
                 )
 
-        for drone in active_drones:
+        for drone in ready_drones:
             if drone.drone_id in accepted:
                 drone.move()
+                target_zone = self._graph.get_zone(drone.current_zone)
+                if target_zone.movement_cost > 1:
+                    drone.wait(target_zone.movement_cost - 1)
 
         state.turn += 1
 

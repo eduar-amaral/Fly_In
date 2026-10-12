@@ -4,12 +4,15 @@ import pygame
 
 
 class MainMenu:
+    START_SIMULATION = "Start Simulation"
+    EXIT = "Exit"
+
     def __init__(self, screen: pygame.Surface) -> None:
         self._screen = screen
 
         self._options = [
-            "Start Simulation",
-            "Exit",
+            self.START_SIMULATION,
+            self.EXIT,
         ]
 
         self._selected = 0

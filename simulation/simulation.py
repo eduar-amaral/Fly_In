@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from graph import Graph
+from graph import Graph, GraphError
 from pathfinding import Pathfinder
 from models import Drone
 
@@ -31,18 +31,29 @@ class Simulation:
             renderer: Renderer used during the simulation.
             logger: Shared log used to print turn details.
         """
-        start = graph.start_zone().name
-        end = graph.end_zone().name
+        try:
+            start = graph.start_zone().name
+            end = graph.end_zone().name
+        except GraphError as exc:
+            raise ValueError(str(exc)) from exc
 
-        path = Pathfinder(graph).shortest_path(start, end)
+        pathfinder = Pathfinder(graph)
+        shortest_path = pathfinder.shortest_path(start, end)
 
-        if not path:
+        if not shortest_path:
             raise ValueError(
                 f"No path found between {start!r} and {end!r}"
             )
 
+        routes = self._build_routes(
+            pathfinder=pathfinder,
+            start=start,
+            end=end,
+            nb_drones=nb_drones,
+        )
+
         drones = [
-            Drone(drone_id=i + 1, path=path)
+            Drone(drone_id=i + 1, path=routes[i])
             for i in range(nb_drones)
         ]
 
@@ -50,6 +61,42 @@ class Simulation:
         self._state = SimulationState(drones=drones)
         self._scheduler = Scheduler(graph)
         self._renderer = renderer or TerminalRenderer(logger=self._logger)
+
+    @staticmethod
+    def _build_routes(
+        *,
+        pathfinder: Pathfinder,
+        start: str,
+        end: str,
+        nb_drones: int,
+    ) -> list[list[str]]:
+        """Distribute drones across distinct equal-cost shortest paths.
+
+        Single-path maps keep the previous behavior. When multiple shortest
+        routes exist, drones are spread across them in round-robin order so the
+        simulation stays realistic without breaking the original project flow.
+        """
+        shortest_paths = pathfinder.all_shortest_paths(start, end)
+        unique_routes: list[list[str]] = []
+        seen: set[tuple[str, ...]] = set()
+
+        for route in shortest_paths:
+            key = tuple(route)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique_routes.append(route)
+
+        if not unique_routes:
+            return [pathfinder.shortest_path(start, end)] * nb_drones
+
+        if len(unique_routes) == 1:
+            return [unique_routes[0]] * nb_drones
+
+        return [
+            unique_routes[i % len(unique_routes)]
+            for i in range(nb_drones)
+        ]
 
     def step(self) -> StepResult:
         """Run one simulation step and save the turn to the log."""

@@ -58,8 +58,31 @@ class Camera:
         )
 
     def move(self, dx: float, dy: float) -> None:
-        self._offset_x += dx
-        self._offset_y += dy
+        self._offset_x = self._clamp_offset(self._offset_x + dx, axis="x")
+        self._offset_y = self._clamp_offset(self._offset_y + dy, axis="y")
+
+    def _clamp_offset(self, value: float, axis: str) -> float:
+        map_width = max(self._max_x - self._min_x, 1)
+        map_height = max(self._max_y - self._min_y, 1)
+
+        available_width = max(self.width - 2 * self.margin, 1)
+        available_height = max(self.height - 2 * self.margin, 1)
+
+        scale = min(
+            available_width / map_width,
+            available_height / map_height,
+        ) * self._zoom
+
+        view_width = map_width * scale
+        view_height = map_height * scale
+
+        max_offset_x = max(0.0, (view_width - available_width) / 2.0)
+        max_offset_y = max(0.0, (view_height - available_height) / 2.0)
+
+        if axis == "x":
+            return max(-max_offset_x, min(max_offset_x, value))
+
+        return max(-max_offset_y, min(max_offset_y, value))
 
     def map_to_screen(
         self,

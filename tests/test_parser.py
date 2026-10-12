@@ -237,6 +237,55 @@ def test_map_parser_rejects_invalid_connections(tmp_path, content):
         MapParser(map_file).load()
 
 
+@pytest.mark.parametrize(
+    "content, expected",
+    [
+        (
+            "nb_drones: 2\nstart_hub: start 0 0\n"
+            "hub: mid 1 0\nend_hub: goal 2 0\n"
+            "connection: start-mid [max_link_capacity=0]\n"
+            "connection: mid-goal [max_link_capacity=1]\n",
+            "positive integer",
+        ),
+        (
+            "nb_drones: 2\nstart_hub: start 0 0\n"
+            "hub: mid 1 0\nend_hub: goal 2 0\n"
+            "connection: start-mid [max_link_capacity=-1]\n"
+            "connection: mid-goal [max_link_capacity=1]\n",
+            "positive integer",
+        ),
+    ],
+)
+def test_map_parser_rejects_invalid_link_capacity(tmp_path, content, expected):
+    map_file = tmp_path / "bad_capacity.txt"
+    map_file.write_text(content, encoding="utf-8")
+
+    with pytest.raises(ParseError, match=expected):
+        MapParser(map_file).load()
+
+
+def test_map_parser_rejects_self_loop_connection(tmp_path):
+    map_file = tmp_path / "self_loop.txt"
+    map_file.write_text(
+        "nb_drones: 2\nstart_hub: start 0 0\n"
+        "hub: mid 1 0\nend_hub: goal 2 0\n"
+        "connection: start-start\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ParseError, match="cannot link zone.*to itself"):
+        MapParser(map_file).load()
+
+
+def test_simulation_rejects_graph_without_path():
+    parsed = MapParser("maps/easy/01_linear_path.txt").load()
+    graph = Graph.from_map(parsed)
+    graph._nodes.pop("goal")
+
+    with pytest.raises(ValueError, match="No end zone|No path found"):
+        Simulation(graph=graph, nb_drones=parsed.nb_drones)
+
+
 def test_map_parser_rejects_missing_start_and_end_hubs(tmp_path):
     map_file = tmp_path / "missing_hubs.txt"
     map_file.write_text(
@@ -259,6 +308,30 @@ def test_map_parser_rejects_invalid_zone_metadata(tmp_path):
 
     with pytest.raises(ParseError, match="Invalid zone type"):
         MapParser(map_file).load()
+
+
+def test_metadata_parser_rejects_comma_separated_pairs():
+    metadata = "color=red,zone=priority"
+
+    with pytest.raises(ParseError, match="Invalid metadata content"):
+        MapParser("maps/easy/01_linear_path.txt")._metadata.parse(
+            metadata,
+            1,
+            "start_hub: start 0 0",
+        )
+
+
+def test_metadata_parser_extracts_trailing_metadata_cleanly():
+    parser = MapParser("maps/easy/01_linear_path.txt")
+
+    metadata, body = parser._metadata.extract(
+        1,
+        "start_hub: start 0 0 [zone=priority color=cyan]",
+        "start 0 0 [zone=priority color=cyan]",
+    )
+
+    assert metadata == "zone=priority color=cyan"
+    assert body == "start 0 0"
 
 
 def test_subject_readme_exists_at_root():
