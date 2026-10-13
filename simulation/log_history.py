@@ -20,13 +20,11 @@ class SimulationLog:
         self,
         graph: Graph | None = None,
         print_output: bool = True,
-        show_capacity_info: bool = False,
     ) -> None:
         """Create a log attached to an optional graph for zone coloring."""
         self._graph = graph
         self._lines: list[str] = []
         self._print_output = print_output
-        self._show_capacity_info = show_capacity_info
 
     def _zone_color(self, zone_name: str) -> tuple[int, int, int] | None:
         """Return the configured RGB color for a zone when available."""
@@ -90,71 +88,20 @@ class SimulationLog:
         """Return whether the log should print live terminal output."""
         return self._print_output
 
-    def _capacity_info_line(
-        self,
-        result: StepResult,
-        state: object | None = None,
-    ) -> str:
-        """Build a capacity summary for the current turn."""
-        if self._graph is None:
-            return ""
-
-        drone_occupancy: dict[str, int] = {}
-        if state is not None:
-            for drone in state.drones:
-                zone_name = drone.current_zone
-                drone_occupancy[zone_name] = (
-                    drone_occupancy.get(zone_name, 0) + 1
-                )
-
-        zone_parts: list[str] = []
-        for zone in self._graph.all_zones():
-            current = drone_occupancy.get(zone.name, 0)
-            zone_parts.append(
-                f"Zone {zone.name}: {current}/{zone.max_drones} drones"
-            )
-
-        connection_parts: list[str] = []
-        usage: dict[tuple[str, str], int] = {}
-        for movement in result.movements:
-            edge = (movement.from_zone, movement.to_zone)
-            usage[edge] = usage.get(edge, 0) + 1
-
-        for from_zone, to_zone in sorted(usage):
-            edge = self._graph.get_edge(from_zone, to_zone)
-            connection_parts.append(
-                f"Connection {from_zone}-{to_zone}: "
-                f"{usage[(from_zone, to_zone)]}/{edge.capacity} capacity used"
-            )
-
-        if not zone_parts and not connection_parts:
-            return ""
-
-        return ", ".join(zone_parts + connection_parts)
-
-    def record(
-        self,
-        turn: int,
-        result: StepResult,
-        state: object | None = None,
-    ) -> None:
+    def record(self, turn: int, result: StepResult) -> None:
         """Save one turn of simulation output.
 
         Args:
             turn: Turn number to store.
             result: Step result produced by the scheduler.
-            state: Optional simulation state used for live capacity data.
         """
         entry = self._plain_entry(turn, result)
-        if entry:
-            self._lines.append(entry)
+        if not entry:
+            return
 
-        if self._show_capacity_info:
-            info_line = self._capacity_info_line(result, state)
-            if info_line:
-                print(info_line)
+        self._lines.append(entry)
 
-        if self._print_output and entry:
+        if self._print_output:
             print(self._terminal_entry(turn, result))
 
     @property

@@ -21,9 +21,9 @@ class ScreenState(str, Enum):
 class GuiRunner:
     """Run the graphical simulation flow as a dedicated runner."""
 
-    def __init__(self, show_capacity_info: bool = False) -> None:
+    def __init__(self) -> None:
         """Create a GUI runner backed by the application loop."""
-        self._app = Application(show_capacity_info=show_capacity_info)
+        self._app = Application()
 
     def run(self) -> None:
         """Launch the pygame application loop."""
@@ -36,7 +36,7 @@ class Application:
     This class controls the pygame window, menu flow, and simulation screen.
     """
 
-    def __init__(self, show_capacity_info: bool = False) -> None:
+    def __init__(self) -> None:
         """Initialize pygame, window, and default app state."""
         pygame.init()
 
@@ -58,7 +58,6 @@ class Application:
         self._result_font = pygame.font.SysFont("consolas", 28)
 
         self._menu_manager = MenuManager(self._screen)
-        self._show_capacity_info = show_capacity_info
 
         self._simulation: Simulation | None = None
         self._renderer: PygameRenderer | None = None
@@ -154,19 +153,12 @@ class Application:
             return
 
         map_path = f"maps/{difficulty.lower()}/{map_name}"
-        simulation = TerminalRunner.load_simulation_from_map(
-            map_path,
-            show_capacity_info=self._show_capacity_info,
-        )
+        simulation = TerminalRunner.load_simulation_from_map(map_path)
 
         self._simulation = simulation
         self._renderer = PygameRenderer(
             graph=simulation.graph,
-            logger=SimulationLog(
-                graph=simulation.graph,
-                print_output=True,
-                show_capacity_info=self._show_capacity_info,
-            ),
+            logger=SimulationLog(graph=simulation.graph, print_output=True),
         )
         self._current_screen = ScreenState.SIMULATION
 
