@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class PygameRenderer(Renderer):
-    """Render the map, drones, and log panel for the UI."""
+    """Render the map and drones for the UI."""
 
     def __init__(
         self,
@@ -32,8 +32,6 @@ class PygameRenderer(Renderer):
         """Create a renderer tied to a graph and optional simulation logger."""
         self._graph = graph
         self._logger = logger or SimulationLog(graph=graph)
-        self._log_scroll = 0
-        self._history_panel_rect = pygame.Rect(0, 0, 0, 0)
 
         screen = pygame.display.get_surface()
 
@@ -96,9 +94,7 @@ class PygameRenderer(Renderer):
         self._open = False
 
     def render(self) -> None:
-        """Render the current simulation frame, map, drones,
-        and turning log.
-        """
+        """Render the current simulation frame, map, and drones."""
         if self._render_state is None:
             return
 
@@ -123,7 +119,6 @@ class PygameRenderer(Renderer):
             self._render_result,
         )
 
-        self._render_history_panel()
         self._update_display()
 
     def _create_renderers(self) -> None:
@@ -200,154 +195,12 @@ class PygameRenderer(Renderer):
         """Refresh the rendered surface on the screen."""
         pygame.display.flip()
 
-    def _wrap_log_line(
-        self,
-        line: str,
-        font: pygame.font.Font,
-        max_width: int,
-    ) -> list[str]:
-        """Wrap a log line so it fits inside the history panel width."""
-        if not line.strip():
-            return [""]
-
-        wrapped: list[str] = []
-        remaining = line.strip()
-
-        while remaining:
-            if font.size(remaining)[0] <= max_width:
-                wrapped.append(remaining)
-                break
-
-            cut_index = 1
-            while cut_index <= len(remaining):
-                if font.size(remaining[:cut_index])[0] > max_width:
-                    break
-                cut_index += 1
-
-            if cut_index == 1:
-                chunk = remaining[:1]
-            else:
-                chunk = remaining[: cut_index - 1].rstrip()
-
-            if not chunk:
-                chunk = remaining[:1]
-
-            wrapped.append(chunk)
-            remaining = remaining[len(chunk):].lstrip()
-
-        return wrapped
-
-    def _scroll_history(self, step: int) -> None:
-        """Scroll the visible log history up or down."""
-        visible_rows = max(1, self._visible_rows())
-        history_lines = self._history_lines()
-        max_scroll = max(0, len(history_lines) - visible_rows)
-        self._log_scroll = max(
-            0,
-            min(max_scroll, self._log_scroll + step),
-        )
-
-    def _visible_rows(self) -> int:
-        """Return how many rows of the log can fit in the panel."""
-        if self._history_panel_rect.height <= 0:
-            return 10
-
-        return max(1, (self._history_panel_rect.height - 42) // 18)
-
-    def _visible_history_lines(self) -> list[str]:
-        """Return the subset of log lines currently visible in the panel."""
-        history_lines = self._history_lines()
-        visible_rows = max(1, self._visible_rows())
-        max_scroll = max(0, len(history_lines) - visible_rows)
-        self._log_scroll = min(self._log_scroll, max_scroll)
-
-        start_index = max(
-            0,
-            len(history_lines) - visible_rows - self._log_scroll,
-        )
-        return history_lines[start_index: start_index + visible_rows]
-
-    def _history_lines(self) -> list[str]:
-        """Return history entries wrapped to the panel width."""
-        if self._history_panel_rect.width <= 0:
-            return list(self._logger.lines)
-
-        max_chars = max(12, (self._history_panel_rect.width - 30) // 8)
-        rendered: list[str] = []
-
-        for line in self._logger.lines:
-            chunk = line.strip()
-            if not chunk:
-                rendered.append("")
-                continue
-
-            while len(chunk) > max_chars:
-                rendered.append(chunk[:max_chars].rstrip())
-                chunk = chunk[max_chars:].lstrip()
-
-            rendered.append(chunk)
-
-        return rendered
-
-    def _render_history_panel(self) -> None:
-        """Render the turn history panel anchored to
-        the right edge of the screen.
-        """
-        font = pygame.font.SysFont("consolas", 16)
-
-        panel_x = self._screen.get_width() - 360
-        panel_y = 20
-        panel_w = 320
-        panel_h = 220
-        content_x = panel_x + 12
-        content_y = panel_y + 28
-        content_w = panel_w - 24
-        content_h = panel_h - 40
-
-        panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
-        inner_rect = pygame.Rect(content_x, content_y, content_w, content_h)
-        self._history_panel_rect = inner_rect
-
-        pygame.draw.rect(
-            self._screen,
-            (22, 24, 30),
-            panel_rect,
-            border_radius=10,
-        )
-        pygame.draw.rect(
-            self._screen,
-            (60, 72, 92),
-            inner_rect,
-            border_radius=8,
-        )
-
-        title = font.render("Turn log", True, (255, 255, 255))
-        self._screen.blit(title, (panel_x + 12, panel_y + 8))
-
-        visible_lines = self._visible_history_lines()
-        text_y = content_y + 8
-
-        previous_clip = self._screen.get_clip()
-        self._screen.set_clip(inner_rect)
-        try:
-            for line in visible_lines:
-                base_color = (220, 230, 240)
-                line_color = self._logger.color_for(line)
-                if line_color is not None:
-                    base_color = line_color
-
-                text = font.render(line, True, base_color)
-                text_rect = text.get_rect(topleft=(content_x + 8, text_y))
-                if text_rect.bottom > content_y + content_h:
-                    break
-                self._screen.blit(text, text_rect.topleft)
-                text_y += 18
-        finally:
-            self._screen.set_clip(previous_clip)
-
     def handle_event(self, event: pygame.event.Event) -> None:
-        """Handle camera navigation and log-scrolling controls."""
+        """Handle camera navigation controls for the GUI."""
         if event.type == pygame.KEYDOWN:
+            if getattr(event, "repeat", False):
+                return
+
             if event.key in (pygame.K_w, pygame.K_UP):
                 self._camera.move(0, Camera.PAN_SPEED)
 
@@ -363,21 +216,7 @@ class PygameRenderer(Renderer):
             elif event.key == pygame.K_r:
                 self._camera.reset()
 
-            elif event.key == pygame.K_PAGEUP:
-                self._scroll_history(1)
-
-            elif event.key == pygame.K_PAGEDOWN:
-                self._scroll_history(-1)
-
         elif event.type == pygame.MOUSEWHEEL:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if self._history_panel_rect.collidepoint(mouse_x, mouse_y):
-                if event.y > 0:
-                    self._scroll_history(1)
-                elif event.y < 0:
-                    self._scroll_history(-1)
-                return
-
             if event.y > 0:
                 self._camera.zoom_in()
             elif event.y < 0:

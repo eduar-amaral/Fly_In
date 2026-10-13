@@ -102,7 +102,7 @@ class Simulation:
     def step(self) -> StepResult:
         """Run one simulation step and save the turn to the log."""
         result = self._scheduler.step(self._state)
-        self._logger.record(self._state.turn, result)
+        self._logger.record(self._state.turn, result, self._state)
         return result
 
     def run(self) -> None:

@@ -85,6 +85,7 @@ class MapParser:
                     content,
                     prefix,
                     kind,
+                    nb_drones,
                 )
 
                 self._register_zone(
@@ -161,6 +162,7 @@ class MapParser:
         content: str,
         prefix: str,
         kind: ZoneKind,
+        nb_drones: int,
     ) -> Zone:
         """Parse a single zone declaration and validate its coordinates."""
         body = content[len(prefix):].strip()
@@ -211,10 +213,14 @@ class MapParser:
             content,
         )
 
+        default_capacity = (
+            nb_drones if kind in (ZoneKind.START, ZoneKind.END) else 1
+        )
+
         max_drones = self._validator.validate_positive_int(
             metadata,
             "max_drones",
-            default=1,
+            default=default_capacity,
             lineno=lineno,
             content=content,
         )

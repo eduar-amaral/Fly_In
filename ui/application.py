@@ -4,7 +4,7 @@ from enum import Enum
 
 import pygame
 
-from simulation import Simulation, TerminalRunner
+from simulation import Simulation, SimulationLog, TerminalRunner
 from ui.renderer.pygame_renderer import PygameRenderer
 
 from .menu.menu_manager import MenuManager
@@ -21,9 +21,9 @@ class ScreenState(str, Enum):
 class GuiRunner:
     """Run the graphical simulation flow as a dedicated runner."""
 
-    def __init__(self) -> None:
+    def __init__(self, show_capacity_info: bool = False) -> None:
         """Create a GUI runner backed by the application loop."""
-        self._app = Application()
+        self._app = Application(show_capacity_info=show_capacity_info)
 
     def run(self) -> None:
         """Launch the pygame application loop."""
@@ -36,7 +36,7 @@ class Application:
     This class controls the pygame window, menu flow, and simulation screen.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, show_capacity_info: bool = False) -> None:
         """Initialize pygame, window, and default app state."""
         pygame.init()
 
@@ -51,13 +51,14 @@ class Application:
         )
 
         pygame.display.set_caption("Fly_In")
-        pygame.key.set_repeat(30, 30)
+        pygame.key.set_repeat(0, 0)
 
         self._clock = pygame.time.Clock()
         self._running = True
         self._result_font = pygame.font.SysFont("consolas", 28)
 
         self._menu_manager = MenuManager(self._screen)
+        self._show_capacity_info = show_capacity_info
 
         self._simulation: Simulation | None = None
         self._renderer: PygameRenderer | None = None
@@ -153,12 +154,19 @@ class Application:
             return
 
         map_path = f"maps/{difficulty.lower()}/{map_name}"
-        simulation = TerminalRunner.load_simulation_from_map(map_path)
+        simulation = TerminalRunner.load_simulation_from_map(
+            map_path,
+            show_capacity_info=self._show_capacity_info,
+        )
 
         self._simulation = simulation
         self._renderer = PygameRenderer(
             graph=simulation.graph,
-            logger=self._simulation.logger,
+            logger=SimulationLog(
+                graph=simulation.graph,
+                print_output=True,
+                show_capacity_info=self._show_capacity_info,
+            ),
         )
         self._current_screen = ScreenState.SIMULATION
 
@@ -184,6 +192,7 @@ class Application:
             drone.finished
             for drone in self._simulation.state.drones
         ):
+            print("All drones reached the destination.")
             self._current_screen = ScreenState.RESULT
             return
 
