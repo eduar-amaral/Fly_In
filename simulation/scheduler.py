@@ -8,10 +8,25 @@ from .step_result import Movement, StepResult, Wait
 
 
 class Scheduler:
+    """Resolve one turn of the simulation by validating drone moves."""
+
     def __init__(self, graph: Graph) -> None:
+        """Create a scheduler bound to a graph.
+
+        Args:
+            graph: Graph used to validate zone and link capacity.
+        """
         self._graph = graph
 
     def step(self, state: SimulationState) -> StepResult:
+        """Advance the simulation by one turn.
+
+        Args:
+            state: Current simulation state.
+
+        Returns:
+            Result describing all movements and waits for the turn.
+        """
         active_drones = [
             drone
             for drone in state.drones
@@ -85,6 +100,7 @@ class Scheduler:
         self,
         drones: list[Drone],
     ) -> dict[int, tuple[str, str]]:
+        """Map each drone to its next planned move when it is not finished."""
         candidates: dict[int, tuple[str, str]] = {}
 
         for drone in drones:
@@ -105,6 +121,7 @@ class Scheduler:
         drones: list[Drone],
         candidates: dict[int, tuple[str, str]],
     ) -> tuple[set[int], dict[int, str]]:
+        """Resolve conflicts and return accepted drones with reasons."""
         accepted = set(candidates)
         rejected: dict[int, str] = {}
 
@@ -147,6 +164,7 @@ class Scheduler:
         candidates: dict[int, tuple[str, str]],
         accepted: set[int],
     ) -> list[list[int]]:
+        """Return groups of drones that exceed a zone capacity."""
         occupancy = self._get_final_occupancy(
             drones,
             candidates,
@@ -186,6 +204,7 @@ class Scheduler:
         candidates: dict[int, tuple[str, str]],
         accepted: set[int],
     ) -> list[list[int]]:
+        """Return groups of drones competing for the same edge capacity."""
         link_usage: dict[frozenset[str], list[int]] = {}
 
         for drone_id in accepted:
@@ -220,6 +239,7 @@ class Scheduler:
         candidates: dict[int, tuple[str, str]],
         accepted: set[int],
     ) -> dict[str, int]:
+        """Compute occupancy after all accepted moves are applied."""
         occupancy: dict[str, int] = {}
 
         # Finished drones do not occupy zones.

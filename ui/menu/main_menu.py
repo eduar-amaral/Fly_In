@@ -4,10 +4,13 @@ import pygame
 
 
 class MainMenu:
+    """Display the initial menu with the launch and exit actions."""
+
     START_SIMULATION = "Start Simulation"
     EXIT = "Exit"
 
     def __init__(self, screen: pygame.Surface) -> None:
+        """Initialize the main menu and its visual state."""
         self._screen = screen
 
         self._options = [
@@ -21,6 +24,7 @@ class MainMenu:
         self._title_font = pygame.font.Font(None, 96)
 
     def handle_event(self, event: pygame.event.Event) -> str | None:
+        """Handle keyboard navigation in the main menu."""
         if event.type != pygame.KEYDOWN:
             return None
 
@@ -40,6 +44,7 @@ class MainMenu:
         return None
 
     def render(self) -> None:
+        """Render the menu to the active screen."""
         self._screen.fill((15, 18, 24))
 
         self._render_title()
@@ -48,6 +53,7 @@ class MainMenu:
         pygame.display.flip()
 
     def _render_title(self) -> None:
+        """Render the Fly-In title header."""
         title = self._title_font.render(
             "FLY-IN",
             True,
@@ -61,6 +67,7 @@ class MainMenu:
         self._screen.blit(title, title_rect)
 
     def _render_options(self) -> None:
+        """Render the selectable options of the menu."""
         for index, option in enumerate(self._options):
             color = (
                 (240, 240, 240)

@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 
 class Renderer(ABC):
+    """Abstract contract for all simulation renderers."""
 
     @abstractmethod
     def render_turn(
@@ -17,12 +18,15 @@ class Renderer(ABC):
         state: SimulationState,
         result: StepResult,
     ) -> None:
+        """Queue a simulation turn to be rendered."""
         pass
 
     @abstractmethod
     def is_open(self) -> bool:
+        """Return whether the renderer is still active."""
         pass
 
     @abstractmethod
     def close(self) -> None:
+        """Close the renderer and stop future drawing."""
         pass

@@ -64,10 +64,12 @@ class AnimationManager:
             self._pause()
 
     def _pause(self) -> None:
+        """Suspend the animation and record the moment it was paused."""
         self._paused_time = time.perf_counter()
         self._paused = True
 
     def _resume(self) -> None:
+        """Resume the animation by compensating for the paused duration."""
         paused_duration = (
             time.perf_counter() - self._paused_time
         )
@@ -77,6 +79,7 @@ class AnimationManager:
 
     @staticmethod
     def ease_in_out_cubic(value: float) -> float:
+        """Apply a smooth easing curve used for animation interpolation."""
         value = max(0.0, min(1.0, value))
 
         if value < 0.5:
@@ -86,16 +89,20 @@ class AnimationManager:
 
     @property
     def progress(self) -> float:
+        """Return the raw normalized animation progress in the range [0, 1]."""
         return self._progress
 
     @property
     def eased_progress(self) -> float:
+        """Return the eased progress value used for smoother motion."""
         return self.ease_in_out_cubic(self._progress)
 
     @property
     def active(self) -> bool:
+        """Return whether the animation is still running."""
         return self._active
 
     @property
     def paused(self) -> bool:
+        """Return whether the animation is currently paused."""
         return self._paused

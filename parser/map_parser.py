@@ -45,6 +45,7 @@ class MapParser:
         return self._parse_all(lines)
 
     def _read_file(self) -> list[tuple[int, str]]:
+        """Read map contents while ignoring blank lines and comments."""
         if not self._path.exists():
             raise FileNotFoundError(f"Map file not found: {self._path}")
 
@@ -60,6 +61,7 @@ class MapParser:
         return result
 
     def _parse_all(self, lines: list[tuple[int, str]]) -> ParsedMap:
+        """Parse a list of normalized file lines into a `ParsedMap` model."""
         if not lines:
             raise ValueError("Map file is empty.")
 
@@ -146,6 +148,7 @@ class MapParser:
         self,
         content: str,
     ) -> tuple[str, ZoneKind] | None:
+        """Return the zone prefix and kind when the line declares a zone."""
         for prefix, kind in self._ZONE_PREFIXES.items():
             if content.startswith(prefix):
                 return prefix, kind
@@ -159,6 +162,7 @@ class MapParser:
         prefix: str,
         kind: ZoneKind,
     ) -> Zone:
+        """Parse a single zone declaration and validate its coordinates."""
         body = content[len(prefix):].strip()
 
         meta_str, body = self._metadata.extract(lineno, content, body)
@@ -238,6 +242,7 @@ class MapParser:
         zone_names: set[str],
         seen_connections: set[frozenset[str]],
     ) -> Connection:
+        """Parse a connection declaration between two already-defined zones."""
         body = content[len("connection:"):].strip()
 
         meta_str, body = self._metadata.extract(lineno, content, body)
@@ -305,6 +310,7 @@ class MapParser:
         lineno: int,
         content: str
     ) -> None:
+        """Register a zone while rejecting duplicate names in the map."""
         if zone.name in zone_names:
             raise ParseError(
                 f"Duplicate zone name: {zone.name!r}. "

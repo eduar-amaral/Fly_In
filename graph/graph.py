@@ -104,16 +104,50 @@ class Graph:
         ))
 
     def get_zone(self, name: str) -> Zone:
+        """Return the zone registered with a given name.
+
+        Args:
+            name: Zone identifier.
+
+        Returns:
+            The matching zone object.
+
+        Raises:
+            GraphError: If the zone does not exist.
+        """
         if name not in self._nodes:
             raise GraphError(f"Zone not found: {name!r}")
         return self._nodes[name]
 
     def get_neighbours(self, name: str) -> list[Edge]:
+        """Return all outgoing edges for a zone.
+
+        Args:
+            name: Zone identifier.
+
+        Returns:
+            A list of adjacent edges.
+
+        Raises:
+            GraphError: If the zone does not exist.
+        """
         if name not in self._edges:
             raise GraphError(f"Zone not found: {name!r}")
         return self._edges[name]
 
     def get_edge(self, source: str, target: str) -> Edge:
+        """Return the edge connecting two zones.
+
+        Args:
+            source: Source zone name.
+            target: Destination zone name.
+
+        Returns:
+            The matching edge.
+
+        Raises:
+            GraphError: If there is no edge between the zones.
+        """
         for edge in self._edges[source]:
             if edge.target == target:
                 return edge
@@ -121,33 +155,41 @@ class Graph:
         raise GraphError(f"No edge from {source!r} to {target!r}")
 
     def has_zone(self, name: str) -> bool:
+        """Return whether a zone with the given name exists."""
         return name in self._nodes
 
     def start_zone(self) -> Zone:
+        """Return the starting hub of the graph."""
         for zone in self._nodes.values():
             if zone.is_start:
                 return zone
         raise GraphError("No start zone in graph.")
 
     def end_zone(self) -> Zone:
+        """Return the destination hub of the graph."""
         for zone in self._nodes.values():
             if zone.is_end:
                 return zone
         raise GraphError("No end zone in graph.")
 
     def all_zones(self) -> list[Zone]:
+        """Return all zones registered in the graph."""
         return list(self._nodes.values())
 
     def passable_zones(self) -> list[Zone]:
+        """Return all zones that can be traversed by drones."""
         return [z for z in self._nodes.values() if z.zone_type.is_passable]
 
     def node_count(self) -> int:
+        """Return the number of zones in the graph."""
         return len(self._nodes)
 
     def edge_count(self) -> int:
+        """Return the number of directed edges in the graph."""
         return sum(len(nbrs) for nbrs in self._edges.values())
 
     def __repr__(self) -> str:
+        """Return a compact representation of the graph."""
         return (
             f"Graph("
             f"zones={self.node_count()}, "
@@ -156,6 +198,7 @@ class Graph:
         )
 
     def debug_print(self) -> None:
+        """Print a quick textual summary of graph contents for debugging."""
         print(repr(self))
         for name, nbrs in self._edges.items():
             zone = self._nodes[name]

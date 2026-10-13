@@ -12,12 +12,16 @@ from simulation.step_result import Movement
 
 
 class DroneRenderer:
+    """Render drone entities on the map and during transitions."""
+
     def __init__(self, graph: Graph, camera: Camera) -> None:
+        """Create a drone renderer bound to a graph and camera."""
         self._graph = graph
         self._camera = camera
 
     @staticmethod
     def offset_for_group(count: int, index: int) -> tuple[int, int]:
+        """Return the offset used when many drones share one zone."""
         if count <= 1:
             return (0, 0)
 
@@ -28,6 +32,7 @@ class DroneRenderer:
         return (x, y)
 
     def render(self, screen: pygame.Surface, drones: list[Drone]) -> None:
+        """Render drones that are stationary in their current zones."""
         grouped: dict[str, list[Drone]] = {}
         for drone in drones:
             grouped.setdefault(drone.current_zone, []).append(drone)
@@ -52,6 +57,7 @@ class DroneRenderer:
         progress: float,
         offset: tuple[int, int] = (0, 0),
     ) -> None:
+        """Render one drone while it is transitioning between two zones."""
         start_zone = self._graph.get_zone(movement.from_zone)
         end_zone = self._graph.get_zone(movement.to_zone)
 
@@ -85,6 +91,7 @@ class DroneRenderer:
         position: tuple[int, int],
         drone_id: int,
     ) -> None:
+        """Draw the circular drone marker and its numeric label."""
         pygame.draw.circle(
             screen,
             (240, 240, 240),

@@ -66,6 +66,7 @@ class Application:
         pygame.quit()
 
     def _handle_events(self) -> None:
+        """Process keyboard and window events for the active screen."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._running = False
@@ -135,6 +136,7 @@ class Application:
                 self._start_simulation(action)
 
     def _start_simulation(self, map_name: str) -> None:
+        """Start a simulation using the selected map and current difficulty."""
         difficulty = self._menu_manager.difficulty
 
         if difficulty is None:
@@ -155,6 +157,9 @@ class Application:
         self._current_screen = ScreenState.SIMULATION
 
     def _update(self) -> None:
+        """Advance the simulation state and render the next
+        turn when possible.
+        """
         if self._current_screen != ScreenState.SIMULATION:
             return
 
@@ -184,6 +189,7 @@ class Application:
         )
 
     def _render(self) -> None:
+        """Draw the active screen, including the menu or live simulation."""
         if self._current_screen == ScreenState.MENU:
             self._menu_manager.render()
 

@@ -11,6 +11,7 @@ class TerminalRenderer(Renderer):
     """Render turn info in the terminal view."""
 
     def __init__(self, logger: SimulationLog | None = None) -> None:
+        """Initialize the terminal renderer with an optional shared log."""
         self._logger = logger
 
     def render_turn(
@@ -18,6 +19,7 @@ class TerminalRenderer(Renderer):
         state: SimulationState,
         result: StepResult,
     ) -> None:
+        """Render the current turn movement summary to the terminal."""
         if self._logger is not None:
             return
 
@@ -32,7 +34,11 @@ class TerminalRenderer(Renderer):
         print(" ".join(parts))
 
     def is_open(self) -> bool:
+        """Return whether the terminal renderer is active."""
         return True
 
     def close(self) -> None:
+        """Close the terminal renderer without performing
+        additional actions.
+        """
         pass

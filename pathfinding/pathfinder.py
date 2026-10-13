@@ -64,6 +64,18 @@ class Pathfinder:
         start: str,
         end: str,
     ) -> list[list[str]]:
+        """Return every shortest path between two zones.
+
+        Args:
+            start: Origin zone name.
+            end: Destination zone name.
+
+        Returns:
+            A list of shortest paths from start to end.
+
+        Raises:
+            PathfinderError: If either zone is unknown.
+        """
         self._validate_zones(start, end)
 
         result = self._algorithm.search(
@@ -74,6 +86,18 @@ class Pathfinder:
         return result.all_paths(start, end)
 
     def reachable(self, start: str, end: str) -> bool:
+        """Check whether the destination zone is reachable from the origin.
+
+        Args:
+            start: Origin zone name.
+            end: Destination zone name.
+
+        Returns:
+            True if a path exists; otherwise False.
+
+        Raises:
+            PathfinderError: If either zone is unknown.
+        """
         self._validate_zones(start, end)
 
         result = self._algorithm.search(start)
@@ -85,6 +109,7 @@ class Pathfinder:
         start: str,
         end: str,
     ) -> None:
+        """Ensure both requested zones exist in the graph."""
         for zone_name in (start, end):
             if not self._graph.has_zone(zone_name):
                 raise PathfinderError(

@@ -6,16 +6,29 @@ from models import MapModel
 
 
 class SearchResult(MapModel):
+    """Store all distances and predecessor information produced by Dijkstra."""
+
     distances: dict[str, float]
     predecessors: dict[str, list[str]]
 
     def distance_to(self, zone: str) -> float:
+        """Return the cost from the start to the given zone."""
         return self.distances.get(zone, inf)
 
     def has_path_to(self, zone: str) -> bool:
+        """Return whether the given zone is reachable from the start."""
         return self.distance_to(zone) < inf
 
     def build_path(self, start: str, end: str) -> list[str]:
+        """Reconstruct the first shortest path between two zones.
+
+        Args:
+            start: Origin zone.
+            end: Destination zone.
+
+        Returns:
+            The path from start to end, or an empty list if no path exists.
+        """
         if not self.has_path_to(end):
             return []
 
@@ -44,6 +57,7 @@ class SearchResult(MapModel):
         return path
 
     def all_paths(self, start: str, end: str) -> list[list[str]]:
+        """Return all shortest paths from the start to the destination."""
         if start == end:
             return [[start]]
 

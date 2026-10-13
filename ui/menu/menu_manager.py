@@ -26,7 +26,12 @@ class MenuAction(str, Enum):
 
 
 class MenuManager:
+    """Coordinate the flow between the main, difficulty, map,
+    and result menus.
+    """
+
     def __init__(self, screen: pygame.Surface) -> None:
+        """Initialize the menu manager and all child screens."""
         self._screen = screen
 
         self._main_menu = MainMenu(screen)
@@ -42,6 +47,7 @@ class MenuManager:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Dispatch a pygame event to the active menu."""
         if self._current_menu == MenuState.MAIN:
             return self._handle_main_menu(event)
 
@@ -57,6 +63,7 @@ class MenuManager:
         return None
 
     def render(self) -> None:
+        """Render the active menu screen."""
         if self._current_menu == MenuState.MAIN:
             self._main_menu.render()
 
@@ -74,6 +81,7 @@ class MenuManager:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Handle events while the main menu is active."""
         choice = self._main_menu.handle_event(event)
 
         if choice == MainMenu.START_SIMULATION:
@@ -88,6 +96,7 @@ class MenuManager:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Handle navigation in the difficulty selection menu."""
         if event.key == pygame.K_UP:
             self._difficulty_menu.move_up()
 
@@ -116,6 +125,7 @@ class MenuManager:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Handle events while the map selection menu is active."""
         if self._map_menu is None:
             return None
 
@@ -135,6 +145,7 @@ class MenuManager:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Handle events while the result confirmation screen is active."""
         if event.type != pygame.KEYDOWN:
             return None
 
@@ -156,7 +167,9 @@ class MenuManager:
 
     @property
     def difficulty(self) -> str | None:
+        """Return the currently selected difficulty level."""
         return self._difficulty
 
     def show_result(self) -> None:
+        """Switch to the result screen after a simulation finishes."""
         self._current_menu = MenuState.RESULT

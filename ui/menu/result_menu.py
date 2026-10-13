@@ -4,7 +4,10 @@ import pygame
 
 
 class ResultMenu:
+    """Display the final summary after the simulation completes."""
+
     def __init__(self, screen: pygame.Surface) -> None:
+        """Initialize the final result menu."""
         self._screen = screen
 
         self._font = pygame.font.Font(None, 48)
@@ -16,6 +19,7 @@ class ResultMenu:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Handle confirmation input to return to the main menu."""
         if event.type != pygame.KEYDOWN:
             return None
 
@@ -28,6 +32,7 @@ class ResultMenu:
         return None
 
     def render(self) -> None:
+        """Render the completion screen."""
         self._screen.fill((15, 18, 24))
 
         self._render_title()
@@ -36,6 +41,7 @@ class ResultMenu:
         pygame.display.flip()
 
     def _render_title(self) -> None:
+        """Render the title indicating the simulation ended."""
         title = self._title_font.render(
             "SIMULATION COMPLETE",
             True,
@@ -49,6 +55,7 @@ class ResultMenu:
         self._screen.blit(title, title_rect)
 
     def _render_message(self) -> None:
+        """Render the instruction for returning to the menu."""
         message = self._font.render(
             "Press ENTER to return to menu",
             True,

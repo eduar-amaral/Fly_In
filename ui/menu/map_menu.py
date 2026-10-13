@@ -6,11 +6,16 @@ import pygame
 
 
 class MapMenu:
+    """Display a list of maps for the chosen difficulty."""
+
     def __init__(
         self,
         screen: pygame.Surface,
         difficulty: str,
     ) -> None:
+        """Initialize the menu with the available map
+        files for a difficulty.
+        """
         self._screen = screen
         self._difficulty = difficulty
 
@@ -24,6 +29,7 @@ class MapMenu:
         self,
         event: pygame.event.Event,
     ) -> str | None:
+        """Handle input for map selection and navigation."""
         if event.type != pygame.KEYDOWN:
             return None
 
@@ -48,6 +54,7 @@ class MapMenu:
         return None
 
     def render(self) -> None:
+        """Render the list of existing map files."""
         self._screen.fill((15, 18, 24))
 
         self._render_title()
@@ -56,6 +63,7 @@ class MapMenu:
         pygame.display.flip()
 
     def _load_maps(self) -> list[str]:
+        """Load all map file names for the selected difficulty directory."""
         directory = Path("maps") / self._difficulty.lower()
 
         return sorted(
@@ -64,6 +72,7 @@ class MapMenu:
         )
 
     def _move_up(self) -> None:
+        """Move the selection up one item."""
         if not self._maps:
             return
 
@@ -72,6 +81,7 @@ class MapMenu:
         ) % len(self._maps)
 
     def _move_down(self) -> None:
+        """Move the selection down one item."""
         if not self._maps:
             return
 
@@ -80,6 +90,7 @@ class MapMenu:
         ) % len(self._maps)
 
     def _render_title(self) -> None:
+        """Render the difficulty title shown at the top of the menu."""
         title = self._title_font.render(
             f"{self._difficulty} MAPS",
             True,
@@ -93,6 +104,7 @@ class MapMenu:
         self._screen.blit(title, title_rect)
 
     def _render_maps(self) -> None:
+        """Render every available map option or a fallback message."""
         if not self._maps:
             text = self._font.render(
                 "No maps available",

@@ -4,6 +4,10 @@ from pydantic import BaseModel, ConfigDict
 
 
 class MapModel(BaseModel):
+    """Base model used across the project for validated,
+    frozen domain objects.
+    """
+
     model_config = ConfigDict(
         extra="forbid",
         frozen=True,

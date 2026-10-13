@@ -22,11 +22,14 @@ if TYPE_CHECKING:
 
 
 class PygameRenderer(Renderer):
+    """Render the map, drones, and log panel for the UI."""
+
     def __init__(
         self,
         graph: Graph,
         logger: SimulationLog | None = None,
     ) -> None:
+        """Create a renderer tied to a graph and optional simulation logger."""
         self._graph = graph
         self._logger = logger or SimulationLog(graph=graph)
         self._log_scroll = 0
@@ -66,6 +69,7 @@ class PygameRenderer(Renderer):
         state: SimulationState,
         result: StepResult,
     ) -> None:
+        """Queue a simulation turn for animated rendering."""
         if not self._open:
             return
 
@@ -75,19 +79,26 @@ class PygameRenderer(Renderer):
         self._animation_manager.start()
 
     def update(self) -> None:
+        """Advance the current animation frame."""
         self._animation_manager.update()
 
     @property
     def animation_active(self) -> bool:
+        """Return whether the current animation is still in progress."""
         return self._animation_manager.active
 
     def is_open(self) -> bool:
+        """Return whether the renderer still accepts draw operations."""
         return self._open
 
     def close(self) -> None:
+        """Close the renderer and stop future updates."""
         self._open = False
 
     def render(self) -> None:
+        """Render the current simulation frame, map, drones,
+        and turning log.
+        """
         if self._render_state is None:
             return
 
@@ -116,6 +127,7 @@ class PygameRenderer(Renderer):
         self._update_display()
 
     def _create_renderers(self) -> None:
+        """Instantiate the child renderers used to draw the map and HUD."""
         self._edge_renderer = EdgeRenderer(
             graph=self._graph,
             camera=self._camera,
@@ -134,6 +146,7 @@ class PygameRenderer(Renderer):
         self._hud_renderer = HUDRenderer()
 
     def _render_map(self) -> None:
+        """Render the static map structure made of edges and zones."""
         self._edge_renderer.render(self._screen)
         self._zone_renderer.render(self._screen)
 
@@ -143,6 +156,7 @@ class PygameRenderer(Renderer):
         result: StepResult,
         progress: float
     ) -> None:
+        """Render stationary and moving drones for the current frame."""
         moving_ids = {
             movement.drone_id
             for movement in result.movements
@@ -179,9 +193,11 @@ class PygameRenderer(Renderer):
             )
 
     def _clear_screen(self) -> None:
+        """Clear the rendering surface before drawing the next frame."""
         self._screen.fill((15, 18, 24))
 
     def _update_display(self) -> None:
+        """Refresh the rendered surface on the screen."""
         pygame.display.flip()
 
     def _wrap_log_line(
@@ -190,6 +206,7 @@ class PygameRenderer(Renderer):
         font: pygame.font.Font,
         max_width: int,
     ) -> list[str]:
+        """Wrap a log line so it fits inside the history panel width."""
         if not line.strip():
             return [""]
 
@@ -221,6 +238,7 @@ class PygameRenderer(Renderer):
         return wrapped
 
     def _scroll_history(self, step: int) -> None:
+        """Scroll the visible log history up or down."""
         visible_rows = max(1, self._visible_rows())
         history_lines = self._history_lines()
         max_scroll = max(0, len(history_lines) - visible_rows)
@@ -230,12 +248,14 @@ class PygameRenderer(Renderer):
         )
 
     def _visible_rows(self) -> int:
+        """Return how many rows of the log can fit in the panel."""
         if self._history_panel_rect.height <= 0:
             return 10
 
         return max(1, (self._history_panel_rect.height - 42) // 18)
 
     def _visible_history_lines(self) -> list[str]:
+        """Return the subset of log lines currently visible in the panel."""
         history_lines = self._history_lines()
         visible_rows = max(1, self._visible_rows())
         max_scroll = max(0, len(history_lines) - visible_rows)
@@ -248,6 +268,7 @@ class PygameRenderer(Renderer):
         return history_lines[start_index: start_index + visible_rows]
 
     def _history_lines(self) -> list[str]:
+        """Return history entries wrapped to the panel width."""
         if self._history_panel_rect.width <= 0:
             return list(self._logger.lines)
 
@@ -269,6 +290,9 @@ class PygameRenderer(Renderer):
         return rendered
 
     def _render_history_panel(self) -> None:
+        """Render the turn history panel anchored to
+        the right edge of the screen.
+        """
         font = pygame.font.SysFont("consolas", 16)
 
         panel_x = self._screen.get_width() - 360
@@ -322,6 +346,7 @@ class PygameRenderer(Renderer):
             self._screen.set_clip(previous_clip)
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        """Handle camera navigation and log-scrolling controls."""
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_w, pygame.K_UP):
                 self._camera.move(0, Camera.PAN_SPEED)
@@ -359,6 +384,7 @@ class PygameRenderer(Renderer):
                 self._camera.zoom_out()
 
     def _fit_camera(self) -> None:
+        """Adjust the camera bounds to encompass all zones in the graph."""
         zones = self._graph.all_zones()
 
         if not zones:
@@ -377,4 +403,5 @@ class PygameRenderer(Renderer):
         )
 
     def toggle_pause(self) -> None:
+        """Pause or resume the animation playback."""
         self._animation_manager.toggle_pause()

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 
 class Camera:
+    """Convert map coordinates into screen space with zoom and pan."""
+
     MIN_ZOOM = 0.5
     MAX_ZOOM = 3.0
     ZOOM_STEP = 0.1
@@ -13,6 +15,7 @@ class Camera:
         height: int,
         margin: int = 80,
     ) -> None:
+        """Initialize the camera with screen dimensions and margins."""
         self.width = width
         self.height = height
         self.margin = margin
@@ -33,6 +36,7 @@ class Camera:
         min_y: int,
         max_y: int,
     ) -> None:
+        """Set the camera bounds to the whole map and reset the viewport."""
         self._min_x = min_x
         self._max_x = max_x
         self._min_y = min_y
@@ -41,27 +45,34 @@ class Camera:
         self.reset()
 
     def reset(self) -> None:
+        """Reset zoom and pan offset to the default viewport."""
         self._zoom = 1.0
         self._offset_x = 0.0
         self._offset_y = 0.0
 
     def zoom_in(self) -> None:
+        """Increase the zoom level up to the maximum allowed."""
         self._zoom = min(
             self._zoom + self.ZOOM_STEP,
             self.MAX_ZOOM,
         )
 
     def zoom_out(self) -> None:
+        """Decrease the zoom level down to the minimum allowed."""
         self._zoom = max(
             self._zoom - self.ZOOM_STEP,
             self.MIN_ZOOM,
         )
 
     def move(self, dx: float, dy: float) -> None:
+        """Pan the camera by the specified deltas."""
         self._offset_x = self._clamp_offset(self._offset_x + dx, axis="x")
         self._offset_y = self._clamp_offset(self._offset_y + dy, axis="y")
 
     def _clamp_offset(self, value: float, axis: str) -> float:
+        """Clamp the camera offset so it stays within
+        the visible map bounds.
+        """
         map_width = max(self._max_x - self._min_x, 1)
         map_height = max(self._max_y - self._min_y, 1)
 
@@ -89,6 +100,7 @@ class Camera:
         x: int,
         y: int,
     ) -> tuple[int, int]:
+        """Translate a map coordinate to the screen coordinate system."""
         map_width = max(
             self._max_x - self._min_x,
             1,

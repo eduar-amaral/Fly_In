@@ -2,7 +2,7 @@
 
 # Fly-in Drones
 
-## Overview
+## Description
 
 Fly-in Drones is a graph-based map simulation project. The program loads a custom map file, validates its structure, builds a graph, computes routes between hubs, and simulates multiple drones moving simultaneously while respecting the rules of capacity, occupancy, and traffic constraints.
 
@@ -194,22 +194,10 @@ make install
 make run
 ```
 
-### Run tests
-
-```bash
-make test
-```
-
 ### Lint and static checks
 
 ```bash
 make lint
-```
-
-### Full validation
-
-```bash
-make check
 ```
 
 ### Direct execution without Make
@@ -241,7 +229,6 @@ The terminal renderer is also available for a lighter execution mode and is usef
 
 The project is validated through:
 
-- `pytest` for functional tests and edge cases
 - `flake8` for style and syntax checks
 - `mypy` for static type validation
 

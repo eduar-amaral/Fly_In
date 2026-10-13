@@ -9,15 +9,19 @@ from ...camera import Camera
 
 
 class ZoneRenderer:
+    """Render graph zones and their labels on the map."""
+
     RADIUS = 18
     BORDER_WIDTH = 2
 
     def __init__(self, graph: Graph, camera: Camera) -> None:
+        """Create a renderer tied to a zone graph and camera."""
         self._graph = graph
         self._camera = camera
         self._font = pygame.font.Font(None, 20)
 
     def render(self, screen: pygame.Surface) -> None:
+        """Render all zones and their names."""
         for zone in self._graph.all_zones():
             position = self._get_position(
                 zone.x,
@@ -37,6 +41,7 @@ class ZoneRenderer:
             )
 
     def _get_position(self, x: int, y: int) -> tuple[int, int]:
+        """Convert map coordinates into screen-space positions."""
         return self._camera.map_to_screen(x, y)
 
     def _draw_zone(
@@ -45,6 +50,7 @@ class ZoneRenderer:
         position: tuple[int, int],
         zone: Zone,
     ) -> None:
+        """Draw the circular zone marker and its filled color."""
         color = self._get_color(zone)
 
         pygame.draw.circle(
@@ -67,6 +73,7 @@ class ZoneRenderer:
         name: str,
         position: tuple[int, int],
     ) -> None:
+        """Render the zone label above the marker."""
         text = self._font.render(
             name,
             True,
@@ -101,6 +108,9 @@ class ZoneRenderer:
         self,
         zone: Zone,
     ) -> tuple[int, int, int]:
+        """Return the correct color for a zone based on
+        its type and metadata.
+        """
         if zone.color is not None:
             return zone.palette_color
 

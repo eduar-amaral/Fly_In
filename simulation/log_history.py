@@ -17,10 +17,12 @@ class SimulationLog:
     _RESET = "\033[0m"
 
     def __init__(self, graph: Graph | None = None) -> None:
+        """Create a log attached to an optional graph for zone coloring."""
         self._graph = graph
         self._lines: list[str] = []
 
     def _zone_color(self, zone_name: str) -> tuple[int, int, int] | None:
+        """Return the configured RGB color for a zone when available."""
         if self._graph is None:
             return None
 
@@ -35,6 +37,9 @@ class SimulationLog:
         return zone.palette_color
 
     def _ansi_color(self, zone_name: str) -> str:
+        """Wrap a zone name with a terminal ANSI color
+        sequence when possible.
+        """
         color = self._zone_color(zone_name)
         if color is None:
             return zone_name
@@ -45,6 +50,7 @@ class SimulationLog:
         )
 
     def _plain_entry(self, turn: int, result: StepResult) -> str:
+        """Build the plain-history text describing a turn result."""
         del turn
 
         parts: list[str] = []
@@ -58,6 +64,7 @@ class SimulationLog:
         return " ".join(parts)
 
     def _terminal_entry(self, turn: int, result: StepResult) -> str:
+        """Build a terminal-safe representation of a turn record."""
         del turn
         return self._plain_entry(0, result)
 
@@ -81,6 +88,7 @@ class SimulationLog:
         return list(self._lines)
 
     def color_for(self, text: str) -> tuple[int, int, int] | None:
+        """Infer the zone color associated with a text log line."""
         if not text or self._graph is None:
             return None
 

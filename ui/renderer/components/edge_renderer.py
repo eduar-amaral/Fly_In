@@ -11,14 +11,18 @@ from .zone_renderer import ZoneRenderer
 
 
 class EdgeRenderer:
+    """Draw the connections between zones on the map surface."""
+
     WIDTH = 2
     COLOR = (70, 80, 95)
 
     def __init__(self, graph: Graph, camera: Camera) -> None:
+        """Create an edge renderer tied to a graph and camera."""
         self._graph = graph
         self._camera = camera
 
     def render(self, screen: pygame.Surface) -> None:
+        """Render each undirected edge once to avoid duplicate lines."""
         draw_edges: set[frozenset[str]] = set()
 
         for zone in self._graph.all_zones():
@@ -68,6 +72,7 @@ class EdgeRenderer:
         tuple[int, int],
         tuple[int, int],
     ]:
+        """Shorten the line segment to avoid drawing under zone circles."""
         dx = end[0] - start[0]
         dy = end[1] - start[1]
 

@@ -7,7 +7,10 @@ from simulation.step_result import StepResult
 
 
 class HUDRenderer:
+    """Render the simulation overlay containing turn and state information."""
+
     def __init__(self) -> None:
+        """Initialize the fonts used by the HUD."""
         self._font = pygame.font.Font(None, 28)
         self._small_font = pygame.font.Font(None, 22)
 
@@ -17,6 +20,7 @@ class HUDRenderer:
         state: SimulationState,
         result: StepResult,
     ) -> None:
+        """Render the full head-up display for the current turn."""
         self._render_turn(screen, state)
         self._render_stats(screen, state, result)
         self._render_controls(screen)
@@ -26,6 +30,7 @@ class HUDRenderer:
         screen: pygame.Surface,
         state: SimulationState,
     ) -> None:
+        """Render the current turn number."""
         text = self._font.render(
             f"Turn: {state.turn}",
             True,
@@ -40,6 +45,7 @@ class HUDRenderer:
         state: SimulationState,
         result: StepResult,
     ) -> None:
+        """Render count information about active, waiting, and total drones."""
         moving = sum(
             1 for drone in state.drones if not drone.finished
         )
@@ -69,6 +75,7 @@ class HUDRenderer:
         self,
         screen: pygame.Surface,
     ) -> None:
+        """Render the controls hint displayed at the bottom of the screen."""
         text = self._small_font.render(
             "SPACE: Pause / Resume    ESC: Exit",
             True,

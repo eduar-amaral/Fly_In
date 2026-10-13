@@ -124,12 +124,15 @@ class Simulation:
 
     @property
     def state(self) -> SimulationState:
+        """Return the live state of the simulation."""
         return self._state
 
     @property
     def turn(self) -> int:
+        """Return the current simulation turn number."""
         return self._state.turn
 
     @property
     def logger(self) -> SimulationLog:
+        """Return the simulation log associated with this run."""
         return self._logger

@@ -21,6 +21,17 @@ class ParsedMap(MapModel):
     @field_validator("nb_drones")
     @classmethod
     def validate_nb_drones(cls, value: int) -> int:
+        """Ensure the map declares at least one drone.
+
+        Args:
+            value: Number of drones configured for the map.
+
+        Returns:
+            The validated drone count.
+
+        Raises:
+            Pce: If the value is zero or negative.
+        """
         if value <= 0:
             raise Pce(
                 "invalid_drone_count_error",
@@ -31,16 +42,20 @@ class ParsedMap(MapModel):
 
     @property
     def start_zone(self) -> Zone:
+        """Return the starting hub declared in the map."""
         return next(zone for zone in self.zones if zone.is_start)
 
     @property
     def end_zone(self) -> Zone:
+        """Return the destination hub declared in the map."""
         return next(zone for zone in self.zones if zone.is_end)
 
     @property
     def zone_map(self) -> dict[str, Zone]:
+        """Return zones indexed by their names for quick lookup."""
         return {zone.name: zone for zone in self.zones}
 
     @property
     def zone_names(self) -> frozenset[str]:
+        """Return all zone names as an immutable set."""
         return frozenset(zone.name for zone in self.zones)

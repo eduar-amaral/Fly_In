@@ -7,11 +7,14 @@ from pathfinding.search_result import SearchResult
 
 
 class DijkstraError(Exception):
-    pass
+    """Raised when the Dijkstra search receives an invalid starting zone."""
 
 
 class Dijkstra:
+    """Compute shortest paths across the graph with a priority queue."""
+
     def __init__(self, graph: Graph) -> None:
+        """Create a Dijkstra solver bound to a specific graph."""
         self._graph = graph
 
     def search(
@@ -19,6 +22,18 @@ class Dijkstra:
         start: str,
         multiple_paths: bool = False,
     ) -> SearchResult:
+        """Search the shortest distances from a starting zone.
+
+        Args:
+            start: Name of the source zone.
+            multiple_paths: Whether equal-cost paths should be kept.
+
+        Returns:
+            A search result object containing distances and predecessors.
+
+        Raises:
+            DijkstraError: If the start zone does not exist in the graph.
+        """
         if not self._graph.has_zone(start):
             raise DijkstraError(f"Unknown start zone {start!r}")
 
