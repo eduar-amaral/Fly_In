@@ -4,9 +4,7 @@ from enum import Enum
 
 import pygame
 
-from graph import Graph
-from parser import MapParser
-from simulation import Simulation
+from simulation import Simulation, TerminalRunner
 from ui.renderer.pygame_renderer import PygameRenderer
 
 from .menu.menu_manager import MenuManager
@@ -18,6 +16,18 @@ class ScreenState(str, Enum):
     MENU = "menu"
     SIMULATION = "simulation"
     RESULT = "result"
+
+
+class GuiRunner:
+    """Run the graphical simulation flow as a dedicated runner."""
+
+    def __init__(self) -> None:
+        """Create a GUI runner backed by the application loop."""
+        self._app = Application()
+
+    def run(self) -> None:
+        """Launch the pygame application loop."""
+        self._app.run()
 
 
 class Application:
@@ -143,17 +153,13 @@ class Application:
             return
 
         map_path = f"maps/{difficulty.lower()}/{map_name}"
+        simulation = TerminalRunner.load_simulation_from_map(map_path)
 
-        parsed = MapParser(map_path).load()
-        graph = Graph.from_map(parsed)
-
-        self._simulation = Simulation(
-            graph=graph,
-            nb_drones=parsed.nb_drones,
-            logger=None,
+        self._simulation = simulation
+        self._renderer = PygameRenderer(
+            graph=simulation.graph,
+            logger=self._simulation.logger,
         )
-
-        self._renderer = PygameRenderer(graph, logger=self._simulation.logger)
         self._current_screen = ScreenState.SIMULATION
 
     def _update(self) -> None:

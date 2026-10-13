@@ -194,6 +194,20 @@ make install
 make run
 ```
 
+### Run a map directly in the terminal
+
+```bash
+python main.py maps/easy/01_linear_path.txt
+```
+
+You can also use the explicit argument form:
+
+```bash
+python main.py --map maps/easy/01_linear_path.txt
+```
+
+This bypasses the pygame interface and executes the simulation in terminal mode.
+
 ### Lint and static checks
 
 ```bash

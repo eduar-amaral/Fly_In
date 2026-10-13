@@ -1,4 +1,5 @@
 from .log_history import SimulationLog
+from .runner import TerminalRunner
 from .scheduler import Scheduler
 from .simulation import Simulation
 from .simulation_state import SimulationState
@@ -10,4 +11,5 @@ __all__ = [
     "SimulationState",
     "StepResult",
     "SimulationLog",
+    "TerminalRunner",
 ]

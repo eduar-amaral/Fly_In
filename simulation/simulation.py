@@ -57,6 +57,7 @@ class Simulation:
             for i in range(nb_drones)
         ]
 
+        self._graph = graph
         self._logger = logger or SimulationLog(graph=graph)
         self._state = SimulationState(drones=drones)
         self._scheduler = Scheduler(graph)
@@ -121,6 +122,11 @@ class Simulation:
 
         if all(drone.finished for drone in self._state.drones):
             print("All drones reached the destination.")
+
+    @property
+    def graph(self) -> Graph:
+        """Return the graph used to build this simulation."""
+        return self._graph
 
     @property
     def state(self) -> SimulationState:

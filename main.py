@@ -1,31 +1,29 @@
-import pygame
+from __future__ import annotations
 
-from ui.application import Application
+import sys
+from pathlib import Path
+
+from simulation.runner import TerminalRunner
 
 
 def main() -> None:
-    """Start the Fly-In application and handle runtime interruptions."""
-    app: Application | None = None
+    """Choose the execution mode based on the provided CLI arguments."""
+    if len(sys.argv) == 1:
+        from ui.application import GuiRunner
+
+        GuiRunner().run()
+        return
+
+    map_path = Path(sys.argv[1])
+
+    if not map_path.exists():
+        raise SystemExit(f"Map not found: {map_path}")
 
     try:
-        app = Application()
-        app.run()
+        TerminalRunner(map_path).run()
     except KeyboardInterrupt:
-        if app is not None:
-            app._running = False
-
-        try:
-            pygame.quit()
-        except Exception:
-            pass
-
         print("\nSimulation interrupted by user.")
     except Exception as exc:
-        try:
-            pygame.quit()
-        except Exception:
-            pass
-
         print(f"\nThe simulation could not start correctly: {exc}")
 
 
